@@ -24,7 +24,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void increaseProductCount(String productName) {
-        InventoryEntity entity = repository.findByProductName(productName);
+        InventoryEntity entity = repository.findByProductName(productName)
+                .orElseThrow(() -> new RuntimeException("Product not found: " + productName));
+        
         Long count = entity.getProductCount();
         count += 1L;
         entity.setProductCount(count);
@@ -33,8 +35,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void decreaseProductCount(String productName) {
-        InventoryEntity entity = repository.findByProductName(productName);
+        InventoryEntity entity = repository.findByProductName(productName)
+                .orElseThrow(() -> new RuntimeException("Product not found: " + productName));
+        
         Long count = entity.getProductCount();
+        if (count <= 0) {
+            throw new RuntimeException("Insufficient stock for product: " + productName);
+        }
         count -= 1L;
         entity.setProductCount(count);
         repository.save(entity);
@@ -42,8 +49,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Long getProductCount(String productName) {
-        InventoryEntity entity = repository.findByProductName(productName);
-        Long count = entity.getProductCount();
-        return count;
+        InventoryEntity entity = repository.findByProductName(productName)
+                .orElseThrow(() -> new RuntimeException("Product not found: " + productName));
+        
+        return entity.getProductCount();
     }
 }
